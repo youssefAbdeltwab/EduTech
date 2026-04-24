@@ -1,9 +1,11 @@
 using BLL.Service.Abstraction;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace EduTech.Controllers
 {
+    [Authorize]
     public class PaymentController : Controller
     {
         private readonly IPaymentService _paymentService;

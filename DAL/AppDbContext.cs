@@ -1,9 +1,11 @@
 using DAL.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace DAL
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<IdentityUser>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
@@ -14,6 +16,7 @@ namespace DAL
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Exam> Exams { get; set; }
         public DbSet<StudentExam> StudentExams { get; set; }
+        public DbSet<Attendance> Attendances { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -28,6 +31,59 @@ namespace DAL
             modelBuilder.Entity<StudentExam>()
                 .HasIndex(se => new { se.StudentId, se.ExamId })
                 .IsUnique();
+
+            // Precision for decimal Score
+            modelBuilder.Entity<StudentExam>()
+                .Property(se => se.Score)
+                .HasPrecision(18, 2);
+
+            // Unique: one attendance record per student per course per month/year
+            modelBuilder.Entity<Attendance>()
+                .HasIndex(a => new { a.StudentId, a.CourseId, a.Month, a.Year })
+                .IsUnique();
+
+            // Disable cascade delete to avoid multiple cascade paths (SQL Server limitation)
+            modelBuilder.Entity<Attendance>()
+                .HasOne(a => a.Student)
+                .WithMany()
+                .HasForeignKey(a => a.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Attendance>()
+                .HasOne(a => a.Course)
+                .WithMany()
+                .HasForeignKey(a => a.CourseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<StudentExam>()
+                .HasOne(se => se.Student)
+                .WithMany()
+                .HasForeignKey(se => se.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<StudentExam>()
+                .HasOne(se => se.Exam)
+                .WithMany(e => e.StudentExams)
+                .HasForeignKey(se => se.ExamId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Exam>()
+                .HasOne(e => e.Course)
+                .WithMany(c => c.Exams)
+                .HasForeignKey(e => e.CourseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Student>()
+                .HasOne(s => s.Course)
+                .WithMany(c => c.Students)
+                .HasForeignKey(s => s.CourseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.Student)
+                .WithMany()
+                .HasForeignKey(p => p.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

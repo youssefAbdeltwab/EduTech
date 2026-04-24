@@ -103,11 +103,54 @@ body {
 .content-footer {
     padding: 15px 25px;
     text-align: center;
-    color: #6c757d;
-    font-size: 0.85rem;
     border-top: 1px solid #dee2e6;
     background: #fff;
 }
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #4f46e5;
+}
+
+.footer-brand i {
+    font-size: 1.1rem;
+}
+
+.footer-name {
+    background: linear-gradient(90deg, #4f46e5, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.footer-text {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+}
+
+.footer-copy {
+    color: #6c757d;
+}
+
+.footer-separator {
+    color: #4f46e5;
+    font-weight: bold;
+}
+
+.footer-desc {\n    color: #4f46e5;\n    font-weight: 600;\n}\n\n.footer-rights {\n    font-size: 0.78rem;\n    color: #6c757d;\n}\n\n.footer-brand-name {\n    color: #4f46e5;\n    font-weight: 700;\n}
 
 /* ===== Cards ===== */
 .card {

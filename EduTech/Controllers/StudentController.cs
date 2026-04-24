@@ -1,10 +1,12 @@
 using BLL.Service.Abstraction;
 using DAL.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace EduTech.Controllers
 {
+    [Authorize]
     public class StudentController : Controller
     {
         private readonly IStudentService _studentService;
@@ -99,6 +101,7 @@ namespace EduTech.Controllers
         }
 
         // GET: Student/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             var student = await _studentService.GetByIdAsync(id);
@@ -109,6 +112,7 @@ namespace EduTech.Controllers
         }
 
         // POST: Student/Delete/5
+        [Authorize(Roles = "Admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

@@ -79,9 +79,12 @@
                                 <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning" title="تعديل">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="حذف">
-                                    <i class="bi bi-trash"></i>
-                                </a>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="حذف">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                }
                                 @if (!string.IsNullOrEmpty(item.Phone))
                                 {
                                     var phone = item.Phone.TrimStart('+').Replace(" ", "").Replace("-", "");

@@ -62,6 +62,12 @@ namespace BLL.Services
 
     // in the student details page show the payment history and the exam history of the student
 
+    // now I want to add authentication and authorization to the application, using the built-in authentication and authorization features of ASP.NET Core, and create two roles: Admin and User.
+    // - Admin can perform all operations (create, read, update, delete) on students, courses, payments, and exams.
+    // - User can't access only the dashboard and can't perform delete operations on any entity, but can create and update students, courses, payments, and exams.
+
+
+
     // in the student index page add a feature to send a what'sapp message to the student with an alert message to pay his fees. 
     // depend on the phone number of the student and use the free version of the whatsApp API to send the message.
 }

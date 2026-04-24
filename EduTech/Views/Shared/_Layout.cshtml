@@ -22,12 +22,15 @@
         </div>
         <nav class="sidebar-nav">
             <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link" asp-controller="Home" asp-action="Index">
-                        <i class="bi bi-house-door"></i>
-                        <span>لوحة التحكم</span>
-                    </a>
-                </li>
+                @if (User.IsInRole("Admin"))
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Home" asp-action="Index">
+                            <i class="bi bi-house-door"></i>
+                            <span>لوحة التحكم</span>
+                        </a>
+                    </li>
+                }
                 <li class="nav-item">
                     <a class="nav-link" asp-controller="Student" asp-action="Index">
                         <i class="bi bi-people"></i>
@@ -52,6 +55,21 @@
                         <span>الامتحانات</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Attendance" asp-action="Index">
+                        <i class="bi bi-calendar-check"></i>
+                        <span>الحضور</span>
+                    </a>
+                </li>
+                @if (User.IsInRole("Admin"))
+                {
+                    <li class="nav-item mt-3">
+                        <a class="nav-link" asp-controller="Account" asp-action="Users">
+                            <i class="bi bi-shield-lock"></i>
+                            <span>المستخدمون</span>
+                        </a>
+                    </li>
+                }
             </ul>
         </nav>
     </aside>
@@ -59,11 +77,31 @@
     <!-- Main Content -->
     <div class="main-content">
         <!-- Top Navbar -->
-        <nav class="top-navbar">
-            <button class="btn btn-link sidebar-toggle d-md-none" type="button" onclick="document.getElementById('sidebar').classList.toggle('show')">
-                <i class="bi bi-list fs-4"></i>
-            </button>
-            <h5 class="mb-0">@ViewData["Title"]</h5>
+        <nav class="top-navbar d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-link sidebar-toggle d-md-none" type="button" onclick="document.getElementById('sidebar').classList.toggle('show')">
+                    <i class="bi bi-list fs-4"></i>
+                </button>
+                <h5 class="mb-0">@ViewData["Title"]</h5>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small">
+                    <i class="bi bi-person-circle"></i> @User.Identity?.Name
+                </span>
+                @if (User.IsInRole("Admin"))
+                {
+                    <span class="badge bg-danger">مدير</span>
+                }
+                else
+                {
+                    <span class="badge bg-primary">مستخدم</span>
+                }
+                <form asp-controller="Account" asp-action="Logout" method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-box-arrow-left"></i> خروج
+                    </button>
+                </form>
+            </div>
         </nav>
 
         <!-- Page Content -->
@@ -73,7 +111,20 @@
 
         <!-- Footer -->
         <footer class="content-footer">
-            &copy; 2026 - EduTech - نظام إدارة الطلاب والدورات
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <i class="bi bi-mortarboard-fill"></i>
+                    <span class="footer-name">EduTech</span>
+                </div>
+                <div class="footer-text">
+                    <span class="footer-copy">&copy; 2026</span>
+                    <span class="footer-separator">&bull;</span>
+                    <span class="footer-desc">نظام إدارة الطلاب والدورات</span>
+                </div>
+                <div class="footer-rights">
+                    جميع حقوق النشر محفوظة لـ <span class="footer-brand-name">TechnoCampus for Digital Solutions</span>
+                </div>
+            </div>
         </footer>
     </div>
 

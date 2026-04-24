@@ -1,10 +1,12 @@
 using System.Diagnostics;
 using BLL.Service.Abstraction;
 using EduTech.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EduTech.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly IStudentService _studentService;
@@ -20,6 +22,7 @@ namespace EduTech.Controllers
             _examService = examService;
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
             var students = await _studentService.GetAllAsync();
@@ -52,6 +55,7 @@ namespace EduTech.Controllers
             return View();
         }
 
+        [AllowAnonymous]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error(int? statusCode)
         {

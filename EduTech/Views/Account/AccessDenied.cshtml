@@ -1,0 +1,21 @@
+@{
+    ViewData["Title"] = "غير مصرح";
+}
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 60vh;">
+    <div class="text-center">
+        <div class="mb-4">
+            <i class="bi bi-shield-lock text-danger" style="font-size: 5rem;"></i>
+        </div>
+        <h2 class="fw-bold mb-3">غير مصرح لك بالوصول</h2>
+        <p class="text-muted fs-5 mb-4">عذراً، ليس لديك صلاحية للوصول إلى هذه الصفحة.</p>
+        <div class="d-flex gap-3 justify-content-center">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+                <i class="bi bi-house"></i> الصفحة الرئيسية
+            </a>
+            <button onclick="history.back()" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-right"></i> العودة للخلف
+            </button>
+        </div>
+    </div>
+</div>
