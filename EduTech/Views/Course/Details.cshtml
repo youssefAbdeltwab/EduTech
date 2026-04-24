@@ -1,0 +1,145 @@
+@model Course
+
+@{
+    ViewData["Title"] = "تفاصيل الدورة";
+}
+
+<div class="mb-4">
+    <h4><i class="bi bi-journal-text"></i> تفاصيل الدورة</h4>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(model => model.CourseName)</strong>
+                <p class="fs-6"><strong>@Model.CourseName</strong></p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">عدد الطلاب</strong>
+                <p class="fs-6"><span class="badge bg-secondary">@Model.Students.Count</span></p>
+            </div>
+
+            <div class="col-md-12 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(model => model.Description)</strong>
+                <p class="fs-6">@(Model.Description ?? "—")</p>
+            </div>
+        </div>
+
+        <hr />
+        <div class="d-flex gap-2">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> تعديل
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-right"></i> رجوع
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Students in this course -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-people"></i> الطلاب المسجلين في هذه الدورة</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>كود الطالب</th>
+                        <th>الاسم الكامل</th>
+                        <th>رقم الهاتف</th>
+                        <th>البريد الإلكتروني</th>
+                        <th>الجنس</th>
+                        <th>العمليات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Students.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                                لا يوجد طلاب مسجلين في هذه الدورة
+                            </td>
+                        </tr>
+                    }
+                    @{ int counter = 0; }
+                    @foreach (var student in Model.Students)
+                    {
+                        counter++;
+                        <tr>
+                            <td>@counter</td>
+                            <td><strong>@student.StudentCode</strong></td>
+                            <td>@student.FullName</td>
+                            <td>@(student.Phone ?? "—")</td>
+                            <td>@(student.Email ?? "—")</td>
+                            <td>
+                                @if (student.Gender == DAL.Enums.Gender.Male)
+                                {
+                                    <span class="badge bg-primary">ذكر</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-info">أنثى</span>
+                                }
+                            </td>
+                            <td>
+                                <a asp-controller="Student" asp-action="Details" asp-route-id="@student.Id" class="btn btn-sm btn-outline-primary" title="تفاصيل">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Exams in this course -->
+@if (Model.Exams != null && Model.Exams.Any())
+{
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-clipboard-check"></i> امتحانات هذه الدورة</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>اسم الامتحان</th>
+                            <th>تاريخ الامتحان</th>
+                            <th>الدرجة العظمى</th>
+                            <th>العمليات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ int examCounter = 0; }
+                        @foreach (var exam in Model.Exams)
+                        {
+                            examCounter++;
+                            <tr>
+                                <td>@examCounter</td>
+                                <td><strong>@exam.ExamName</strong></td>
+                                <td>@exam.ExamDate.ToString("yyyy-MM-dd")</td>
+                                <td>@exam.MaxScore</td>
+                                <td>
+                                    <a asp-controller="Exam" asp-action="Details" asp-route-id="@exam.Id" class="btn btn-sm btn-outline-primary" title="تفاصيل والدرجات">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}

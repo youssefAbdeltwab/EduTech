@@ -1,0 +1,61 @@
+@model Exam
+
+@{
+    ViewData["Title"] = "حذف امتحان";
+}
+
+<div class="mb-4">
+    <h4 class="text-danger"><i class="bi bi-exclamation-triangle"></i> حذف امتحان</h4>
+</div>
+
+<div class="card border-danger">
+    <div class="card-header bg-danger text-white">
+        <i class="bi bi-exclamation-circle"></i> هل أنت متأكد من حذف هذا الامتحان؟
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(model => model.ExamName)</strong>
+                <p class="fs-6"><strong>@Model.ExamName</strong></p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">الدورة</strong>
+                <p class="fs-6">@(Model.Course?.CourseName ?? "—")</p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(model => model.ExamDate)</strong>
+                <p class="fs-6">@Model.ExamDate.ToString("yyyy-MM-dd")</p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(model => model.MaxScore)</strong>
+                <p class="fs-6">@Model.MaxScore</p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">عدد الطلاب</strong>
+                <p class="fs-6"><span class="badge bg-secondary">@Model.StudentExams.Count</span></p>
+            </div>
+        </div>
+
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i>
+            <strong>تحذير:</strong> سيتم حذف الامتحان وجميع درجات الطلاب المرتبطة به نهائياً.
+        </div>
+
+        <hr />
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="Id" />
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> تأكيد الحذف
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-right"></i> إلغاء
+                </a>
+            </div>
+        </form>
+    </div>
+</div>

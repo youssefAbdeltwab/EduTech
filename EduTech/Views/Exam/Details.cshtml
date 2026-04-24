@@ -1,0 +1,149 @@
+@model Exam
+
+@{
+    ViewData["Title"] = "تفاصيل الامتحان";
+}
+
+<div class="mb-4">
+    <h4><i class="bi bi-clipboard-data"></i> تفاصيل الامتحان</h4>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        <i class="bi bi-check-circle"></i> @TempData["Success"]
+    </div>
+}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(model => model.ExamName)</strong>
+                <p class="fs-6"><strong>@Model.ExamName</strong></p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">الدورة</strong>
+                <p class="fs-6">
+                    <a asp-controller="Course" asp-action="Details" asp-route-id="@Model.CourseId">@Model.Course?.CourseName</a>
+                </p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(model => model.ExamDate)</strong>
+                <p class="fs-6">@Model.ExamDate.ToString("yyyy-MM-dd")</p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(model => model.MaxScore)</strong>
+                <p class="fs-6">@Model.MaxScore</p>
+            </div>
+        </div>
+
+        <hr />
+        <div class="d-flex gap-2">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> تعديل
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-right"></i> رجوع
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Student Scores -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-people"></i> درجات الطلاب</h5>
+    </div>
+    <div class="card-body p-0">
+        <form asp-action="SaveScores" method="post">
+            <input type="hidden" name="examId" value="@Model.Id" />
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>كود الطالب</th>
+                            <th>الاسم الكامل</th>
+                            <th>الدرجة / @Model.MaxScore</th>
+                            <th>النسبة</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.StudentExams.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                                    لا يوجد طلاب في هذا الامتحان
+                                </td>
+                            </tr>
+                        }
+                        @{ int counter = 0; }
+                        @foreach (var se in Model.StudentExams)
+                        {
+                            counter++;
+                            decimal? percentage = se.Score.HasValue ? Math.Round((se.Score.Value / Model.MaxScore) * 100, 1) : null;
+                            <tr>
+                                <td>@counter</td>
+                                <td><strong>@se.Student?.StudentCode</strong></td>
+                                <td>
+                                    <a asp-controller="Student" asp-action="Details" asp-route-id="@se.StudentId">
+                                        @se.Student?.FullName
+                                    </a>
+                                </td>
+                                <td style="width: 150px;">
+                                    <input type="hidden" name="studentExams[@(counter - 1)].Id" value="@se.Id" />
+                                    <input type="number" name="studentExams[@(counter - 1)].Score"
+                                           value="@se.Score"
+                                           class="form-control form-control-sm"
+                                           min="0" max="@Model.MaxScore"
+                                           step="0.5"
+                                           placeholder="—" />
+                                </td>
+                                <td>
+                                    @if (percentage.HasValue)
+                                    {
+                                        <span class="@(percentage >= 50 ? "text-success" : "text-danger") fw-bold">
+                                            @percentage%
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!se.Score.HasValue)
+                                    {
+                                        <span class="badge bg-secondary">لم يُصحح</span>
+                                    }
+                                    else if (percentage >= 50)
+                                    {
+                                        <span class="badge bg-success">ناجح</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">راسب</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (Model.StudentExams.Any())
+            {
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> حفظ الدرجات
+                    </button>
+                </div>
+            }
+        </form>
+    </div>
+</div>

@@ -1,0 +1,174 @@
+@model IEnumerable<Student>
+
+@{
+    ViewData["Title"] = "المدفوعات";
+    int selectedMonth = (int)ViewBag.SelectedMonth;
+    int selectedYear = (int)ViewBag.SelectedYear;
+    int selectedCourseId = (int)ViewBag.SelectedCourseId;
+    string selectedStatus = (string)ViewBag.SelectedStatus;
+    var paidStudentIds = (HashSet<int>)ViewBag.PaidStudentIds;
+
+    string[] monthNames = { "", "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
+                              "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر" };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-cash-coin"></i> المدفوعات</h4>
+</div>
+
+<!-- Month/Year Filter -->
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form asp-action="Index" method="get" class="d-flex align-items-center gap-2 flex-wrap">
+            <label class="form-label mb-0 fw-bold">الدورة:</label>
+            <select name="courseId" class="form-select" style="max-width: 200px;">
+                <option value="0">جميع الدورات</option>
+                @foreach (var item in (SelectList)ViewBag.Courses)
+                {
+                    <option value="@item.Value" selected="@(item.Value == selectedCourseId.ToString())">@item.Text</option>
+                }
+            </select>
+
+            <label class="form-label mb-0 fw-bold">الحالة:</label>
+            <select name="status" class="form-select" style="max-width: 160px;">
+                <option value="all" selected="@(selectedStatus == "all")">الكل</option>
+                <option value="paid" selected="@(selectedStatus == "paid")">دفعوا</option>
+                <option value="unpaid" selected="@(selectedStatus == "unpaid")">لم يدفعوا</option>
+            </select>
+
+            <label class="form-label mb-0 fw-bold">الشهر:</label>
+            <select name="month" class="form-select" style="max-width: 160px;">
+                @for (int m = 1; m <= 12; m++)
+                {
+                    <option value="@m" selected="@(m == selectedMonth)">@monthNames[m]</option>
+                }
+            </select>
+
+            <label class="form-label mb-0 fw-bold">السنة:</label>
+            <select name="year" class="form-select" style="max-width: 120px;">
+                @for (int y = DateTime.Now.Year - 2; y <= DateTime.Now.Year + 1; y++)
+                {
+                    <option value="@y" selected="@(y == selectedYear)">@y</option>
+                }
+            </select>
+
+            <button type="submit" class="btn btn-primary btn-sm">
+                <i class="bi bi-funnel"></i> عرض
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Summary -->
+@{
+    int totalStudents = Model.Count();
+    int paidCount = paidStudentIds.Count;
+    int unpaidCount = totalStudents - paidCount;
+}
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body py-2">
+                <div class="text-muted small">إجمالي الطلاب</div>
+                <div class="fs-4 fw-bold">@totalStudents</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center border-success">
+            <div class="card-body py-2">
+                <div class="text-success small">دفعوا</div>
+                <div class="fs-4 fw-bold text-success">@paidCount</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center border-danger">
+            <div class="card-body py-2">
+                <div class="text-danger small">لم يدفعوا</div>
+                <div class="fs-4 fw-bold text-danger">@unpaidCount</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="bi bi-calendar-month"></i>
+            مدفوعات شهر @monthNames[selectedMonth] @selectedYear
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>كود الطالب</th>
+                        <th>الاسم الكامل</th>
+                        <th>الدورة</th>
+                        <th>الحالة</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                                لا يوجد طلاب حالياً
+                            </td>
+                        </tr>
+                    }
+                    @{ int counter = 0; }
+                    @foreach (var student in Model)
+                    {
+                        counter++;
+                        bool isPaid = paidStudentIds.Contains(student.Id);
+                        <tr>
+                            <td>@counter</td>
+                            <td><strong>@student.StudentCode</strong></td>
+                            <td>@student.FullName</td>
+                            <td>@(student.Course?.CourseName ?? "—")</td>
+                            <td>
+                                @if (isPaid)
+                                {
+                                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> مدفوع</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger"><i class="bi bi-x-circle"></i> غير مدفوع</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!isPaid)
+                                {
+                                    <form asp-action="Pay" method="post" style="display: inline;">
+                                        <input type="hidden" name="studentId" value="@student.Id" />
+                                        <input type="hidden" name="month" value="@selectedMonth" />
+                                        <input type="hidden" name="year" value="@selectedYear" />
+                                        <input type="hidden" name="courseId" value="@selectedCourseId" />
+                                        <input type="hidden" name="status" value="@selectedStatus" />
+                                        <button type="submit" class="btn btn-sm btn-success" title="تسجيل الدفع">
+                                            <i class="bi bi-check-circle"></i> دفع
+                                        </button>
+                                    </form>
+                                    if (!string.IsNullOrEmpty(student.Phone))
+                                    {
+                                        var phone = student.Phone.TrimStart('+').Replace(" ", "").Replace("-", "");
+                                        var msg = System.Net.WebUtility.UrlEncode($"مرحباً {student.FullName}\n،  م. أحمد عبستار نود تذكيرك بسداد رسوم شهر {monthNames[selectedMonth]} {selectedYear}");
+                                        <a href="https://wa.me/@phone?text=@msg" target="_blank" class="btn btn-sm btn-success" title="تذكير بالدفع عبر واتساب">
+                                            <i class="bi bi-whatsapp"></i>
+                                        </a>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

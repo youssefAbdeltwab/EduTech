@@ -1,0 +1,64 @@
+@model Exam
+
+@{
+    ViewData["Title"] = "إضافة امتحان";
+}
+
+<div class="mb-4">
+    <h4><i class="bi bi-clipboard-plus"></i> إضافة امتحان جديد</h4>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="ExamName" class="form-label"></label>
+                    <input asp-for="ExamName" class="form-control" placeholder="أدخل اسم الامتحان" />
+                    <span asp-validation-for="ExamName" class="field-validation-error"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="CourseId" class="form-label"></label>
+                    <select asp-for="CourseId" asp-items="@(ViewBag.Courses as SelectList)" class="form-select">
+                        <option value="">-- اختر الدورة --</option>
+                    </select>
+                    <span asp-validation-for="CourseId" class="field-validation-error"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="ExamDate" class="form-label"></label>
+                    <input asp-for="ExamDate" class="form-control" type="date" />
+                    <span asp-validation-for="ExamDate" class="field-validation-error"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="MaxScore" class="form-label"></label>
+                    <input asp-for="MaxScore" class="form-control" type="number" min="1" max="1000" placeholder="مثال: 100" />
+                    <span asp-validation-for="MaxScore" class="field-validation-error"></span>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                عند إنشاء الامتحان، سيتم تلقائياً إضافة جميع طلاب الدورة المختارة إلى هذا الامتحان.
+            </div>
+
+            <hr />
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-circle"></i> حفظ
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-right"></i> رجوع
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

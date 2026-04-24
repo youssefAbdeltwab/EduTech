@@ -1,0 +1,60 @@
+@model Exam
+
+@{
+    ViewData["Title"] = "تعديل امتحان";
+}
+
+<div class="mb-4">
+    <h4><i class="bi bi-pencil-square"></i> تعديل بيانات الامتحان</h4>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Edit" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+            <input type="hidden" asp-for="Id" />
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="ExamName" class="form-label"></label>
+                    <input asp-for="ExamName" class="form-control" />
+                    <span asp-validation-for="ExamName" class="field-validation-error"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="CourseId" class="form-label"></label>
+                    <select asp-for="CourseId" asp-items="@(ViewBag.Courses as SelectList)" class="form-select">
+                        <option value="">-- اختر الدورة --</option>
+                    </select>
+                    <span asp-validation-for="CourseId" class="field-validation-error"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="ExamDate" class="form-label"></label>
+                    <input asp-for="ExamDate" class="form-control" type="date" />
+                    <span asp-validation-for="ExamDate" class="field-validation-error"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="MaxScore" class="form-label"></label>
+                    <input asp-for="MaxScore" class="form-control" type="number" min="1" max="1000" />
+                    <span asp-validation-for="MaxScore" class="field-validation-error"></span>
+                </div>
+            </div>
+
+            <hr />
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-warning">
+                    <i class="bi bi-check-circle"></i> تحديث
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-right"></i> رجوع
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

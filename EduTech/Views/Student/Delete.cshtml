@@ -1,0 +1,70 @@
+@model Student
+
+@{
+    ViewData["Title"] = "حذف طالب";
+}
+
+<div class="mb-4">
+    <h4 class="text-danger"><i class="bi bi-exclamation-triangle"></i> حذف طالب</h4>
+</div>
+
+<div class="card border-danger">
+    <div class="card-header bg-danger text-white">
+        <i class="bi bi-exclamation-circle"></i> هل أنت متأكد من حذف هذا الطالب؟
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(model => model.StudentCode)</strong>
+                <p class="fs-6"><strong>@Model.StudentCode</strong></p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(model => model.FullName)</strong>
+                <p class="fs-6">@Model.FullName</p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">الدورة</strong>
+                <p class="fs-6">@(Model.Course?.CourseName ?? "—")</p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(model => model.Phone)</strong>
+                <p class="fs-6">@(Model.Phone ?? "—")</p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(model => model.Email)</strong>
+                <p class="fs-6">@(Model.Email ?? "—")</p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(model => model.Gender)</strong>
+                <p class="fs-6">
+                    @if (Model.Gender == DAL.Enums.Gender.Male)
+                    {
+                        <span class="badge bg-primary">ذكر</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-info">أنثى</span>
+                    }
+                </p>
+            </div>
+        </div>
+
+        <hr />
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="Id" />
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> تأكيد الحذف
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-right"></i> إلغاء
+                </a>
+            </div>
+        </form>
+    </div>
+</div>

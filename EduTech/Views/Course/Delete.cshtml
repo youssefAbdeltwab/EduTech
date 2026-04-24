@@ -1,0 +1,61 @@
+@model Course
+
+@{
+    ViewData["Title"] = "حذف دورة";
+}
+
+<div class="mb-4">
+    <h4 class="text-danger"><i class="bi bi-exclamation-triangle"></i> حذف دورة</h4>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-circle"></i> @TempData["Error"]
+    </div>
+}
+
+<div class="card border-danger">
+    <div class="card-header bg-danger text-white">
+        <i class="bi bi-exclamation-circle"></i> هل أنت متأكد من حذف هذه الدورة؟
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(model => model.CourseName)</strong>
+                <p class="fs-6"><strong>@Model.CourseName</strong></p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">عدد الطلاب</strong>
+                <p class="fs-6"><span class="badge bg-secondary">@Model.Students.Count</span></p>
+            </div>
+
+            <div class="col-md-12 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(model => model.Description)</strong>
+                <p class="fs-6">@(Model.Description ?? "—")</p>
+            </div>
+        </div>
+
+        @if (Model.Students.Any())
+        {
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                <strong>تحذير:</strong> هذه الدورة تحتوي على <strong>@Model.Students.Count</strong> طالب مسجل. لا يمكن حذفها حتى يتم نقل أو حذف جميع الطلاب.
+            </div>
+        }
+
+        <hr />
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="Id" />
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger" @(Model.Students.Any() ? "disabled" : "")>
+                    <i class="bi bi-trash"></i> تأكيد الحذف
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-right"></i> إلغاء
+                </a>
+            </div>
+        </form>
+    </div>
+</div>

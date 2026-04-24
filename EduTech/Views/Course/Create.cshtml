@@ -1,0 +1,45 @@
+@model Course
+
+@{
+    ViewData["Title"] = "إضافة دورة";
+}
+
+<div class="mb-4">
+    <h4><i class="bi bi-journal-plus"></i> إضافة دورة جديدة</h4>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="CourseName" class="form-label"></label>
+                    <input asp-for="CourseName" class="form-control" placeholder="أدخل اسم الدورة" />
+                    <span asp-validation-for="CourseName" class="field-validation-error"></span>
+                </div>
+
+                <div class="col-md-12 mb-3">
+                    <label asp-for="Description" class="form-label"></label>
+                    <textarea asp-for="Description" class="form-control" rows="3" placeholder="أدخل وصف الدورة"></textarea>
+                    <span asp-validation-for="Description" class="field-validation-error"></span>
+                </div>
+            </div>
+
+            <hr />
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-circle"></i> حفظ
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-right"></i> رجوع
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

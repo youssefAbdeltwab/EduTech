@@ -1,0 +1,85 @@
+@model Student
+
+@{
+    ViewData["Title"] = "إضافة طالب";
+}
+
+<div class="mb-4">
+    <h4><i class="bi bi-person-plus"></i> إضافة طالب جديد</h4>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="StudentCode" class="form-label"></label>
+                    <input asp-for="StudentCode" class="form-control" placeholder="آخر 4 أرقام من الرقم القومي" maxlength="4" />
+                    <span asp-validation-for="StudentCode" class="field-validation-error"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="FullName" class="form-label"></label>
+                    <input asp-for="FullName" class="form-control" placeholder="أدخل الاسم الكامل" />
+                    <span asp-validation-for="FullName" class="field-validation-error"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Gender" class="form-label"></label>
+                    <select asp-for="Gender" asp-items="Html.GetEnumSelectList<DAL.Enums.Gender>()" class="form-select">
+                        <option value="">-- اختر الجنس --</option>
+                    </select>
+                    <span asp-validation-for="Gender" class="field-validation-error"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="CourseId" class="form-label"></label>
+                    <select asp-for="CourseId" asp-items="@(ViewBag.Courses as SelectList)" class="form-select">
+                        <option value="">-- اختر الدورة --</option>
+                    </select>
+                    <span asp-validation-for="CourseId" class="field-validation-error"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Phone" class="form-label"></label>
+                    <input asp-for="Phone" class="form-control" placeholder="أدخل رقم الهاتف" />
+                    <span asp-validation-for="Phone" class="field-validation-error"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" placeholder="أدخل البريد الإلكتروني" />
+                    <span asp-validation-for="Email" class="field-validation-error"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="DateOfBirth" class="form-label"></label>
+                    <input asp-for="DateOfBirth" class="form-control" type="date" />
+                    <span asp-validation-for="DateOfBirth" class="field-validation-error"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Address" class="form-label"></label>
+                    <input asp-for="Address" class="form-control" placeholder="أدخل العنوان" />
+                    <span asp-validation-for="Address" class="field-validation-error"></span>
+                </div>
+            </div>
+
+            <hr />
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-circle"></i> حفظ
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-right"></i> رجوع
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

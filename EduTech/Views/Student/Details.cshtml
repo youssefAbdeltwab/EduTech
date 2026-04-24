@@ -1,0 +1,217 @@
+@model Student
+
+@{
+    ViewData["Title"] = "تفاصيل الطالب";
+}
+
+<div class="mb-4">
+    <h4><i class="bi bi-person-lines-fill"></i> تفاصيل الطالب</h4>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(model => model.StudentCode)</strong>
+                <p class="fs-6"><strong>@Model.StudentCode</strong></p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(model => model.FullName)</strong>
+                <p class="fs-6">@Model.FullName</p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">الدورة</strong>
+                <p class="fs-6">
+                    @if (Model.Course != null)
+                    {
+                        <a asp-controller="Course" asp-action="Details" asp-route-id="@Model.CourseId">@Model.Course.CourseName</a>
+                    }
+                    else
+                    {
+                        <span>—</span>
+                    }
+                </p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(model => model.Gender)</strong>
+                <p class="fs-6">
+                    @if (Model.Gender == DAL.Enums.Gender.Male)
+                    {
+                        <span class="badge bg-primary">ذكر</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-info">أنثى</span>
+                    }
+                </p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(model => model.Phone)</strong>
+                <p class="fs-6">@(Model.Phone ?? "—")</p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(model => model.Email)</strong>
+                <p class="fs-6">@(Model.Email ?? "—")</p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(model => model.DateOfBirth)</strong>
+                <p class="fs-6">@(Model.DateOfBirth?.ToString("yyyy-MM-dd") ?? "—")</p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(model => model.Address)</strong>
+                <p class="fs-6">@(Model.Address ?? "—")</p>
+            </div>
+        </div>
+
+        <hr />
+        <div class="d-flex gap-2">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> تعديل
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-right"></i> رجوع
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Payment History -->
+@if (ViewBag.Payments != null)
+{
+    var payments = (List<DAL.Entities.Payment>)ViewBag.Payments;
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-cash-coin"></i> سجل المدفوعات</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>الشهر</th>
+                            <th>السنة</th>
+                            <th>تاريخ الدفع</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!payments.Any())
+                        {
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                                    لا يوجد مدفوعات مسجلة
+                                </td>
+                            </tr>
+                        }
+                        @foreach (var p in payments)
+                        {
+                            <tr>
+                                <td>@p.ForMonth</td>
+                                <td>@p.ForYear</td>
+                                <td>@p.PaymentDate.ToString("yyyy-MM-dd")</td>
+                                <td><span class="badge bg-success">مدفوع</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Exam Results -->
+@if (ViewBag.StudentExams != null)
+{
+    var studentExams = (List<DAL.Entities.StudentExam>)ViewBag.StudentExams;
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-clipboard-check"></i> نتائج الامتحانات</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>اسم الامتحان</th>
+                            <th>تاريخ الامتحان</th>
+                            <th>الدرجة</th>
+                            <th>النسبة</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!studentExams.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                                    لا يوجد امتحانات مسجلة
+                                </td>
+                            </tr>
+                        }
+                        @{ int examCounter = 0; }
+                        @foreach (var se in studentExams)
+                        {
+                            examCounter++;
+                            decimal? percentage = (se.Score.HasValue && se.Exam != null) ? Math.Round((se.Score.Value / se.Exam.MaxScore) * 100, 1) : null;
+                            <tr>
+                                <td>@examCounter</td>
+                                <td>
+                                    <a asp-controller="Exam" asp-action="Details" asp-route-id="@se.ExamId">
+                                        @se.Exam?.ExamName
+                                    </a>
+                                </td>
+                                <td>@se.Exam?.ExamDate.ToString("yyyy-MM-dd")</td>
+                                <td>
+                                    @if (se.Score.HasValue)
+                                    {
+                                        <span>@se.Score / @se.Exam?.MaxScore</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (percentage.HasValue)
+                                    {
+                                        <span class="@(percentage >= 50 ? "text-success" : "text-danger") fw-bold">
+                                            @percentage%
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!se.Score.HasValue)
+                                    {
+                                        <span class="badge bg-secondary">لم يُصحح</span>
+                                    }
+                                    else if (percentage >= 50)
+                                    {
+                                        <span class="badge bg-success">ناجح</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">راسب</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
