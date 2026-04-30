@@ -158,6 +158,9 @@
                                     if (!string.IsNullOrEmpty(student.Phone))
                                     {
                                         var phone = student.Phone.TrimStart('+').Replace(" ", "").Replace("-", "");
+                                        if (phone.StartsWith("00")) { phone = phone.Substring(2); }
+                                        if (phone.StartsWith("0")) { phone = "20" + phone.Substring(1); }
+                                        else if (!phone.StartsWith("20")) { phone = "20" + phone; }
                                         var msg = System.Net.WebUtility.UrlEncode($"مرحباً {student.FullName}\n،  م. أحمد عبستار نود تذكيرك بسداد رسوم شهر {monthNames[selectedMonth]} {selectedYear}");
                                         <a href="https://wa.me/@phone?text=@msg" target="_blank" class="btn btn-sm btn-success" title="تذكير بالدفع عبر واتساب">
                                             <i class="bi bi-whatsapp"></i>

@@ -5,6 +5,8 @@
     int selectedCourseId = (int)ViewBag.SelectedCourseId;
     int selectedMonth = (int)ViewBag.SelectedMonth;
     int selectedYear = (int)ViewBag.SelectedYear;
+    string googleFormUrl = ViewBag.GoogleFormUrl ?? "";
+    var activeSession = ViewBag.ActiveSession as DAL.Entities.AttendanceSession;
 
     string[] monthNames = { "", "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
                               "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر" };
@@ -12,7 +14,54 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0"><i class="bi bi-calendar-check"></i> تتبع الحضور</h4>
+    @if (selectedCourseId > 0)
+    {
+        <div class="d-flex gap-2">
+            @if (!string.IsNullOrEmpty(googleFormUrl))
+            {
+                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#qrModal">
+                    <i class="bi bi-qr-code"></i> عرض QR Code
+                </button>
+            }
+            <button type="button" class="btn btn-success btn-sm" id="btnGenerate" onclick="generateSession(@selectedCourseId)">
+                <i class="bi bi-key"></i> توليد PIN
+            </button>
+            <button type="button" class="btn btn-warning btn-sm text-dark" id="btnDeactivate"
+                    onclick="deactivateSession()"
+                    @(activeSession == null ? "disabled" : "")>
+                <i class="bi bi-stop-circle"></i> إنهاء الحصة
+            </button>
+            <button type="button" class="btn btn-info btn-sm text-white" id="btnSync" onclick="syncGoogleData()">
+                <i class="bi bi-cloud-download"></i> <span id="btnSyncText">مزامنة من Google</span>
+                <span id="syncSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+            </button>
+        </div>
+    }
 </div>
+
+@* Active session banner *@
+@if (selectedCourseId > 0 && activeSession != null)
+{
+    <div class="alert alert-success d-flex align-items-center gap-3 mb-3" id="sessionBanner">
+        <i class="bi bi-shield-check fs-4"></i>
+        <div>
+            <strong>حصة نشطة</strong> — رمز PIN:
+            <span class="badge bg-dark fs-5 mx-1" id="pinDisplay">@activeSession.SessionPIN</span>
+            <small class="text-muted">بدأت الساعة @activeSession.CreatedAt.ToLocalTime().ToString("HH:mm") (صالحة 45 دقيقة)</small>
+        </div>
+    </div>
+}
+else if (selectedCourseId > 0)
+{
+    <div class="alert alert-secondary d-flex align-items-center gap-2 mb-3 d-none" id="sessionBanner">
+        <i class="bi bi-shield-check fs-4"></i>
+        <div>
+            <strong>حصة نشطة</strong> — رمز PIN:
+            <span class="badge bg-dark fs-5 mx-1" id="pinDisplay"></span>
+            <small class="text-muted" id="pinTime"></small>
+        </div>
+    </div>
+}
 
 <!-- Filters -->
 <div class="card mb-3">
@@ -214,4 +263,159 @@ else
             <h5>اختر دورة من القائمة أعلاه لعرض الحضور</h5>
         </div>
     </div>
+}
+
+<!-- QR Code Modal -->
+@if (!string.IsNullOrEmpty(googleFormUrl) && selectedCourseId > 0)
+{
+    <div class="modal fade" id="qrModal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="qrModalLabel">
+                        <i class="bi bi-qr-code"></i> QR Code - نموذج تسجيل الحضور
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p class="text-muted mb-3">امسح الكود لتسجيل حضورك</p>
+                    <div id="qrcode" class="d-flex justify-content-center mb-3"></div>
+                    <small class="text-muted d-block mt-2" dir="ltr" style="word-break: break-all;">
+                        @(googleFormUrl)
+                    </small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Toast Notification -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
+    <div id="syncToast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body" id="toastBody"></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- QR Code Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <script>
+        // Generate QR Code when modal opens
+        @if (!string.IsNullOrEmpty(googleFormUrl) && selectedCourseId > 0)
+        {
+            <text>
+            document.getElementById('qrModal')?.addEventListener('shown.bs.modal', function () {
+                var qrContainer = document.getElementById('qrcode');
+                if (qrContainer.childElementCount === 0) {
+                    var qr = qrcode(0, 'M');
+                    qr.addData('@Html.Raw(googleFormUrl)');
+                    qr.make();
+                    qrContainer.innerHTML = qr.createSvgTag(6, 0);
+                }
+            });
+            </text>
+        }
+
+        var _activeSessionId = @(activeSession?.Id.ToString() ?? "null");
+
+        function generateSession(courseId) {
+            fetch('@Url.Action("GenerateSession", "Attendance")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'courseId=' + courseId
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    _activeSessionId = data.sessionId;
+                    document.getElementById('pinDisplay').textContent = data.pin;
+                    var banner = document.getElementById('sessionBanner');
+                    banner.classList.remove('d-none', 'alert-secondary');
+                    banner.classList.add('alert-success');
+                    if (document.getElementById('pinTime'))
+                        document.getElementById('pinTime').textContent = 'بدأت الساعة ' + data.createdAt + ' (صالحة 45 دقيقة)';
+                    document.getElementById('btnDeactivate').disabled = false;
+                    showToast('تم توليد PIN: ' + data.pin, true);
+                }
+            })
+            .catch(() => showToast('خطأ في توليد الرمز', false));
+        }
+
+        function deactivateSession() {
+            if (!_activeSessionId) return;
+            fetch('@Url.Action("DeactivateSession", "Attendance")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'sessionId=' + _activeSessionId
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    _activeSessionId = null;
+                    var banner = document.getElementById('sessionBanner');
+                    banner.classList.remove('alert-success');
+                    banner.classList.add('alert-secondary', 'd-none');
+                    document.getElementById('btnDeactivate').disabled = true;
+                    showToast('تم إنهاء الحصة. لن يُقبل أي حضور جديد.', true);
+                }
+            })
+            .catch(() => showToast('خطأ في إنهاء الحصة', false));
+        }
+
+        function syncGoogleData() {
+            var btn = document.getElementById('btnSync');
+            var btnText = document.getElementById('btnSyncText');
+            var spinner = document.getElementById('syncSpinner');
+
+            // Disable and show spinner
+            btn.disabled = true;
+            btnText.textContent = 'جاري المزامنة...';
+            spinner.classList.remove('d-none');
+
+            fetch('@Url.Action("SyncGoogleData", "Attendance")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                showToast(data.message, data.success);
+
+                // Refresh page after successful sync to show updated attendance
+                if (data.success && data.validRecords > 0) {
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 1500);
+                }
+            })
+            .catch(error => {
+                showToast('خطأ في الاتصال بالخادم: ' + error.message, false);
+            })
+            .finally(function () {
+                btn.disabled = false;
+                btnText.textContent = 'مزامنة من Google';
+                spinner.classList.add('d-none');
+            });
+        }
+
+        function showToast(message, success) {
+            var toast = document.getElementById('syncToast');
+            var toastBody = document.getElementById('toastBody');
+
+            toast.classList.remove('text-bg-success', 'text-bg-danger');
+            toast.classList.add(success ? 'text-bg-success' : 'text-bg-danger');
+            toastBody.textContent = message;
+
+            var bsToast = new bootstrap.Toast(toast, { delay: 5000 });
+            bsToast.show();
+        }
+    </script>
 }

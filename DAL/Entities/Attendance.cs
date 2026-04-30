@@ -46,5 +46,12 @@ namespace DAL.Entities
 
         [Display(Name = "الحصة 8")]
         public bool Session8 { get; set; }
+
+        [Display(Name = "وقت المزامنة")]
+        public DateTime? SyncTimestamp { get; set; }
+
+        [MaxLength(100)]
+        [Display(Name = "معرف الصف الخارجي")]
+        public string? ExternalRowId { get; set; }
     }
 }

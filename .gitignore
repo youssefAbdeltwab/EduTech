@@ -6,6 +6,12 @@ obj/
 *.suo
 *.cache
 *.log
+AppSettings.json
+AppSettings.Development.json
+edutech-attendance-824c84625e05.json
+google-services.json
+appsettings.json
+appsettings.Development.json
 
 ## SQLite
 *.db

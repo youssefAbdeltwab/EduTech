@@ -17,6 +17,8 @@ namespace DAL
         public DbSet<Exam> Exams { get; set; }
         public DbSet<StudentExam> StudentExams { get; set; }
         public DbSet<Attendance> Attendances { get; set; }
+        public DbSet<AttendanceSession> AttendanceSessions { get; set; }
+        public DbSet<SyncMetadata> SyncMetadata { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -83,6 +85,19 @@ namespace DAL
                 .HasOne(p => p.Student)
                 .WithMany()
                 .HasForeignKey(p => p.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Unique index on ExternalRowId to prevent duplicate sync entries
+            modelBuilder.Entity<Attendance>()
+                .HasIndex(a => a.ExternalRowId)
+                .IsUnique()
+                .HasFilter("[ExternalRowId] IS NOT NULL");
+
+            // AttendanceSession FK to Course with Restrict delete
+            modelBuilder.Entity<AttendanceSession>()
+                .HasOne(s => s.Course)
+                .WithMany()
+                .HasForeignKey(s => s.CourseId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

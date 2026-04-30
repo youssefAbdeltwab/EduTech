@@ -45,6 +45,22 @@ namespace EduTech
             builder.Services.AddScoped<IPaymentService, PaymentService>();
             builder.Services.AddScoped<IExamService, ExamService>();
             builder.Services.AddScoped<IAttendanceService, AttendanceService>();
+            builder.Services.AddScoped<IAttendanceSessionService, AttendanceSessionService>();
+
+            // Google Sheets Sync Services
+            builder.Services.AddSingleton<IGoogleSheetsService>(sp =>
+            {
+                var config = sp.GetRequiredService<IConfiguration>();
+                var logger = sp.GetRequiredService<ILogger<GoogleSheetsService>>();
+                var env = sp.GetRequiredService<IWebHostEnvironment>();
+                var relPath = config["GoogleSheets:CredentialPath"] ?? "edutech-attendance-824c84625e05.json";
+                // Resolve against content root so it works regardless of working directory
+                var credPath = Path.IsPathRooted(relPath)
+                    ? relPath
+                    : Path.Combine(env.ContentRootPath, relPath);
+                return new GoogleSheetsService(credPath, logger);
+            });
+            builder.Services.AddScoped<IAttendanceSyncManager, AttendanceSyncManager>();
 
             var app = builder.Build();
 
