@@ -1,0 +1,108 @@
+@model InventoryItem
+@using DAL.Entities
+
+@{
+    ViewData["Title"] = "تعديل صنف";
+}
+
+<div class="mb-4">
+    <h4><i class="bi bi-box-seam"></i> تعديل صنف</h4>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Edit" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="CreatedByUserId" />
+            <input type="hidden" asp-for="CreatedAt" />
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Name" class="form-label"></label>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="field-validation-error"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="ItemType" class="form-label"></label>
+                    <select asp-for="ItemType" asp-items="ViewBag.Types" id="ItemType" class="form-select">
+                        <option value="">-- اختر النوع --</option>
+                    </select>
+                    <span asp-validation-for="ItemType" class="field-validation-error"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Category" class="form-label"></label>
+                    <select asp-for="Category" asp-items="ViewBag.Categories" class="form-select">
+                        <option value="">-- اختر التصنيف --</option>
+                    </select>
+                    <span asp-validation-for="Category" class="field-validation-error"></span>
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label asp-for="Quantity" class="form-label"></label>
+                    <input asp-for="Quantity" class="form-control" type="number" min="0" />
+                    <span asp-validation-for="Quantity" class="field-validation-error"></span>
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label asp-for="MinimumQuantity" class="form-label"></label>
+                    <input asp-for="MinimumQuantity" class="form-control" type="number" min="0" />
+                    <span asp-validation-for="MinimumQuantity" class="field-validation-error"></span>
+                </div>
+
+                <div class="col-md-6 mb-3" id="conditionField">
+                    <label asp-for="Condition" class="form-label"></label>
+                    <select asp-for="Condition" asp-items="ViewBag.Conditions" class="form-select">
+                        <option value="">-- اختر الحالة --</option>
+                    </select>
+                    <span asp-validation-for="Condition" class="field-validation-error"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Location" class="form-label"></label>
+                    <input asp-for="Location" class="form-control" />
+                    <span asp-validation-for="Location" class="field-validation-error"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="CourseId" class="form-label"></label>
+                    <select asp-for="CourseId" asp-items="ViewBag.Courses" class="form-select">
+                        <option value="">-- بدون دورة (اختياري) --</option>
+                    </select>
+                    <span asp-validation-for="CourseId" class="field-validation-error"></span>
+                </div>
+
+                <div class="col-md-12 mb-3">
+                    <label asp-for="Notes" class="form-label"></label>
+                    <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="Notes" class="field-validation-error"></span>
+                </div>
+            </div>
+
+            <hr />
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-circle"></i> حفظ
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-right"></i> رجوع
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function toggleConditionField() {
+            var typeSelect = document.getElementById('ItemType');
+            var conditionField = document.getElementById('conditionField');
+            conditionField.style.display = typeSelect.value === '2' ? '' : 'none';
+        }
+        document.getElementById('ItemType').addEventListener('change', toggleConditionField);
+        toggleConditionField();
+    </script>
+}

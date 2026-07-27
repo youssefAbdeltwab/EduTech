@@ -1,0 +1,143 @@
+@model List<InventoryItem>
+@using DAL.Entities
+@using DAL.Enums
+@using DAL.Extensions
+@using Microsoft.AspNetCore.Mvc.Rendering
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+
+@{
+    ViewData["Title"] = "المخزون";
+    InventoryItemType? selectedType = ViewBag.SelectedType as InventoryItemType?;
+    InventoryCategory? selectedCategory = ViewBag.SelectedCategory as InventoryCategory?;
+    var lowStockIds = (HashSet<int>)ViewBag.LowStockIds;
+    int lowStockCount = (int)ViewBag.LowStockCount;
+    string alertPhone = Configuration["InventoryAlertPhone"] ?? "";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-box-seam"></i> المخزون</h4>
+    <a asp-action="Create" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> إضافة صنف
+    </a>
+</div>
+
+<!-- Type/Category Filter -->
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form asp-action="Index" method="get" class="d-flex align-items-center gap-2 flex-wrap">
+            <label class="form-label mb-0 fw-bold">النوع:</label>
+            <select name="type" class="form-select" style="max-width: 180px;">
+                <option value="">الكل</option>
+                @foreach (var item in (SelectList)ViewBag.Types)
+                {
+                    <option value="@item.Value" selected="@(selectedType.HasValue && item.Value == ((int)selectedType.Value).ToString())">@item.Text</option>
+                }
+            </select>
+
+            <label class="form-label mb-0 fw-bold">التصنيف:</label>
+            <select name="category" class="form-select" style="max-width: 200px;">
+                <option value="">الكل</option>
+                @foreach (var item in (SelectList)ViewBag.Categories)
+                {
+                    <option value="@item.Value" selected="@(selectedCategory.HasValue && item.Value == ((int)selectedCategory.Value).ToString())">@item.Text</option>
+                }
+            </select>
+
+            <label class="form-label mb-0 fw-bold">الدورة:</label>
+            <select name="courseId" class="form-select" style="max-width: 200px;">
+                <option value="">الكل</option>
+                @foreach (var item in (SelectList)ViewBag.Courses)
+                {
+                    <option value="@item.Value" selected="@(ViewBag.SelectedCourseId != null && item.Value == ((int)ViewBag.SelectedCourseId).ToString())">@item.Text</option>
+                }
+            </select>
+
+            <button type="submit" class="btn btn-primary btn-sm">
+                <i class="bi bi-funnel"></i> عرض
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Summary -->
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card text-center @(lowStockCount > 0 ? "border-danger" : "border-primary")">
+            <div class="card-body py-2">
+                <div class="text-muted small">أصناف منخفضة المخزون</div>
+                <div class="fs-4 fw-bold @(lowStockCount > 0 ? "text-danger" : "text-primary")">@lowStockCount</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-list-ul"></i> أصناف المخزون</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>الاسم</th>
+                        <th>النوع</th>
+                        <th>التصنيف</th>
+                        <th>الكمية</th>
+                        <th>الموقع</th>
+                        <th>الحالة</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                                لا يوجد أصناف حالياً
+                            </td>
+                        </tr>
+                    }
+                    @{ int counter = 0; }
+                    @foreach (var item in Model)
+                    {
+                        counter++;
+                        bool isLow = lowStockIds.Contains(item.Id);
+                        <tr>
+                            <td>@counter</td>
+                            <td>
+                                @item.Name
+                                @if (isLow)
+                                {
+                                    <span class="badge bg-danger ms-1">متبقي منخفض</span>
+                                }
+                            </td>
+                            <td>@item.ItemType.GetDisplayName()</td>
+                            <td>@item.Category.GetDisplayName()</td>
+                            <td>@item.Quantity</td>
+                            <td>@(item.Location ?? "—")</td>
+                            <td>@(item.Condition.HasValue ? item.Condition.Value.GetDisplayName() : "—")</td>
+                            <td>
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="تعديل">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="حذف">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                                @if (isLow && !string.IsNullOrEmpty(alertPhone))
+                                {
+                                    var msg = System.Net.WebUtility.UrlEncode($"تنبيه: كمية {item.Name} منخفضة (المتبقي: {item.Quantity})");
+                                    <a href="https://wa.me/@alertPhone?text=@msg" target="_blank" class="btn btn-sm btn-success" title="تنبيه عبر واتساب">
+                                        <i class="bi bi-whatsapp"></i>
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

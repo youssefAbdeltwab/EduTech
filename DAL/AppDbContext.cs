@@ -20,6 +20,7 @@ namespace DAL
         public DbSet<AttendanceSession> AttendanceSessions { get; set; }
         public DbSet<SyncMetadata> SyncMetadata { get; set; }
         public DbSet<Expense> Expenses { get; set; }
+        public DbSet<InventoryItem> InventoryItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -105,6 +106,14 @@ namespace DAL
                 .WithMany()
                 .HasForeignKey(s => s.CourseId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Optional link to Course — deleting a course must not be blocked by inventory records,
+            // so this is the first SetNull FK in the codebase (every other FK here is Restrict).
+            modelBuilder.Entity<InventoryItem>()
+                .HasOne(i => i.Course)
+                .WithMany()
+                .HasForeignKey(i => i.CourseId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

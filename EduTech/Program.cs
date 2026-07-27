@@ -47,6 +47,7 @@ namespace EduTech
             builder.Services.AddScoped<IAttendanceService, AttendanceService>();
             builder.Services.AddScoped<IAttendanceSessionService, AttendanceSessionService>();
             builder.Services.AddScoped<IExpenseService, ExpenseService>();
+            builder.Services.AddScoped<IInventoryService, InventoryService>();
 
             // Google Sheets Sync Services
             builder.Services.AddSingleton<IGoogleSheetsService>(sp =>
