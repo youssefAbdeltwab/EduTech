@@ -13,10 +13,12 @@ namespace EduTech.Controllers
     public class InventoryController : Controller
     {
         private readonly IInventoryService _inventoryService;
+        private readonly ICourseService _courseService;
 
-        public InventoryController(IInventoryService inventoryService)
+        public InventoryController(IInventoryService inventoryService, ICourseService courseService)
         {
             _inventoryService = inventoryService;
+            _courseService = courseService;
         }
 
         private static SelectList TypeSelectList(InventoryItemType? selected = null)
@@ -54,6 +56,7 @@ namespace EduTech.Controllers
             ViewBag.SelectedCourseId = courseId;
             ViewBag.Types = TypeSelectList(type);
             ViewBag.Categories = CategorySelectList(category);
+            ViewBag.Courses = new SelectList(await _courseService.GetAllAsync(), "Id", "CourseName", courseId);
             ViewBag.LowStockIds = lowStock.Select(i => i.Id).ToHashSet();
             ViewBag.LowStockCount = lowStock.Count;
 
@@ -66,6 +69,7 @@ namespace EduTech.Controllers
             ViewBag.Types = TypeSelectList();
             ViewBag.Categories = CategorySelectList();
             ViewBag.Conditions = ConditionSelectList();
+            ViewBag.Courses = new SelectList(await _courseService.GetAllAsync(), "Id", "CourseName");
             return View();
         }
 
@@ -74,6 +78,9 @@ namespace EduTech.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(InventoryItem item)
         {
+            if (item.ItemType != InventoryItemType.Asset)
+                item.Condition = null;
+
             if (ModelState.IsValid)
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -84,6 +91,7 @@ namespace EduTech.Controllers
             ViewBag.Types = TypeSelectList(item.ItemType);
             ViewBag.Categories = CategorySelectList(item.Category);
             ViewBag.Conditions = ConditionSelectList(item.Condition);
+            ViewBag.Courses = new SelectList(await _courseService.GetAllAsync(), "Id", "CourseName", item.CourseId);
             return View(item);
         }
 
@@ -97,6 +105,7 @@ namespace EduTech.Controllers
             ViewBag.Types = TypeSelectList(item.ItemType);
             ViewBag.Categories = CategorySelectList(item.Category);
             ViewBag.Conditions = ConditionSelectList(item.Condition);
+            ViewBag.Courses = new SelectList(await _courseService.GetAllAsync(), "Id", "CourseName", item.CourseId);
             return View(item);
         }
 
@@ -107,6 +116,9 @@ namespace EduTech.Controllers
         {
             if (id != item.Id)
                 return NotFound();
+
+            if (item.ItemType != InventoryItemType.Asset)
+                item.Condition = null;
 
             if (ModelState.IsValid)
             {
@@ -121,6 +133,7 @@ namespace EduTech.Controllers
             ViewBag.Types = TypeSelectList(item.ItemType);
             ViewBag.Categories = CategorySelectList(item.Category);
             ViewBag.Conditions = ConditionSelectList(item.Condition);
+            ViewBag.Courses = new SelectList(await _courseService.GetAllAsync(), "Id", "CourseName", item.CourseId);
             return View(item);
         }
 

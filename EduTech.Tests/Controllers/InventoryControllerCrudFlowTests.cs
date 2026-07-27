@@ -14,7 +14,8 @@ namespace EduTech.Tests.Controllers
         {
             db = DbContextFactory.Create();
             var service = new InventoryService(db);
-            var controller = new InventoryController(service);
+            var courseService = new CourseService(db);
+            var controller = new InventoryController(service, courseService);
             controller.SetUser("user-1", "User");
             return controller;
         }
@@ -33,6 +34,8 @@ namespace EduTech.Tests.Controllers
             var view = Assert.IsType<ViewResult>(result);
             var model = Assert.IsAssignableFrom<List<InventoryItem>>(view.Model);
             Assert.Single(model);
+            Assert.IsType<HashSet<int>>(view.ViewData["LowStockIds"]);
+            Assert.IsType<int>(view.ViewData["LowStockCount"]);
         }
 
         [Fact]
@@ -72,6 +75,19 @@ namespace EduTech.Tests.Controllers
             var redirect = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal(nameof(InventoryController.Index), redirect.ActionName);
             Assert.Single(db.InventoryItems);
+        }
+
+        [Fact]
+        public async Task Create_Post_ConsumableWithCondition_ClearsConditionBeforeSaving()
+        {
+            var controller = BuildController(out var db);
+            var item = new InventoryItem { Name = "Notebooks", ItemType = InventoryItemType.Consumable, Category = InventoryCategory.Stationery, Quantity = 5, MinimumQuantity = 1, Condition = AssetCondition.Good };
+
+            var result = await controller.Create(item);
+
+            Assert.IsType<RedirectToActionResult>(result);
+            var saved = db.InventoryItems.Single();
+            Assert.Null(saved.Condition);
         }
 
         // ---------- Edit GET ----------
@@ -152,6 +168,21 @@ namespace EduTech.Tests.Controllers
             var saved = await db.InventoryItems.FindAsync(1);
             Assert.Equal("Whiteboard Markers", saved!.Name);
             Assert.Equal(3, saved.Quantity);
+        }
+
+        [Fact]
+        public async Task Edit_Post_ChangingAssetToConsumable_ClearsCondition()
+        {
+            var controller = BuildController(out var db);
+            db.InventoryItems.Add(new InventoryItem { Id = 1, Name = "Projector", ItemType = InventoryItemType.Asset, Category = InventoryCategory.Electronics, Quantity = 1, MinimumQuantity = 0, Condition = AssetCondition.Good });
+            await db.SaveChangesAsync();
+            var updated = new InventoryItem { Id = 1, Name = "Projector", ItemType = InventoryItemType.Consumable, Category = InventoryCategory.Electronics, Quantity = 1, MinimumQuantity = 0, Condition = AssetCondition.Good };
+
+            var result = await controller.Edit(1, updated);
+
+            Assert.IsType<RedirectToActionResult>(result);
+            var saved = await db.InventoryItems.FindAsync(1);
+            Assert.Null(saved!.Condition);
         }
 
         // ---------- Delete GET ----------

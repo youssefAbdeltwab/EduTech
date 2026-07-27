@@ -43,6 +43,15 @@
                 }
             </select>
 
+            <label class="form-label mb-0 fw-bold">الدورة:</label>
+            <select name="courseId" class="form-select" style="max-width: 200px;">
+                <option value="">الكل</option>
+                @foreach (var item in (SelectList)ViewBag.Courses)
+                {
+                    <option value="@item.Value" selected="@(ViewBag.SelectedCourseId != null && item.Value == ((int)ViewBag.SelectedCourseId).ToString())">@item.Text</option>
+                }
+            </select>
+
             <button type="submit" class="btn btn-primary btn-sm">
                 <i class="bi bi-funnel"></i> عرض
             </button>
