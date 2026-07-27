@@ -3,27 +3,33 @@ using DAL;
 using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace BLL.Services
 {
     public class AttendanceSyncManager : IAttendanceSyncManager
     {
+        private static readonly TimeSpan ClearDelay = TimeSpan.FromMinutes(20);
+
         private readonly AppDbContext _context;
         private readonly IGoogleSheetsService _sheetsService;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AttendanceSyncManager> _logger;
+        private readonly IServiceScopeFactory _scopeFactory;
 
         public AttendanceSyncManager(
             AppDbContext context,
             IGoogleSheetsService sheetsService,
             IConfiguration configuration,
-            ILogger<AttendanceSyncManager> logger)
+            ILogger<AttendanceSyncManager> logger,
+            IServiceScopeFactory scopeFactory)
         {
             _context = context;
             _sheetsService = sheetsService;
             _configuration = configuration;
             _logger = logger;
+            _scopeFactory = scopeFactory;
         }
 
         public async Task<SyncResult> ProcessPendingAttendanceAsync()
@@ -109,12 +115,18 @@ namespace BLL.Services
 
                     var courseId = matchingSession.CourseId;
 
-                    // C3: Timestamp within 45 minutes of session creation (prevents sharing link after class)
+                    // C3: Timestamp within configured window of session creation
+                    // (prevents students sharing link long after class). Default 120 min.
+                    var windowMinutes = _configuration.GetValue<int?>("GoogleSheets:SessionWindowMinutes") ?? 120;
                     var timeDiff = (row.Timestamp - matchingSession.CreatedAt).Duration();
-                    if (timeDiff > TimeSpan.FromMinutes(45))
+                    if (timeDiff > TimeSpan.FromMinutes(windowMinutes))
                     {
                         result.SkippedRecords++;
-                        result.Errors.Add($"Row {row.RowNumber}: Timestamp outside session window.");
+                        result.Errors.Add(
+                            $"Row {row.RowNumber}: Timestamp outside session window. " +
+                            $"Submitted: {row.Timestamp:yyyy-MM-dd HH:mm:ss}, " +
+                            $"Session created: {matchingSession.CreatedAt:yyyy-MM-dd HH:mm:ss}, " +
+                            $"Diff: {timeDiff.TotalMinutes:F1} min (window: {windowMinutes} min).");
                         continue;
                     }
 
@@ -229,29 +241,14 @@ namespace BLL.Services
                     await _context.SaveChangesAsync();
                 }
 
-                // Step F: Clear processed rows from the sheet so old data isn't re-fetched.
-                // Reset LastProcessedRow to 1 since rows are physically removed.
+                // Step F: Schedule clearing of processed rows from the sheet AFTER a delay,
+                // so very recent submissions still have a buffer window. Fire-and-forget.
                 if (result.Success && rowList.Count > 0)
                 {
-                    try
-                    {
-                        var maxRowToDelete = rowList.Max(r => r.RowNumber);
-                        await _sheetsService.ClearProcessedRowsAsync(spreadsheetId, maxRowToDelete);
-
-                        var meta = await _context.SyncMetadata
-                            .FirstOrDefaultAsync(s => s.SpreadsheetId == spreadsheetId);
-                        if (meta != null)
-                        {
-                            meta.LastProcessedRow = 1;
-                            meta.LastSyncDate = DateTime.UtcNow;
-                            await _context.SaveChangesAsync();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Sync succeeded but failed to clear sheet rows.");
-                        result.Errors.Add($"Warning: rows saved but sheet not cleared - {ex.Message}");
-                    }
+                    var maxRowToDelete = rowList.Max(r => r.RowNumber);
+                    _logger.LogInformation("Scheduling sheet clear for rows 2..{Max} in {Delay} minutes.",
+                        maxRowToDelete, ClearDelay.TotalMinutes);
+                    _ = ScheduleClearAsync(spreadsheetId, maxRowToDelete);
                 }
             }
             catch (Google.GoogleApiException ex)
@@ -281,6 +278,39 @@ namespace BLL.Services
             if (!attendance.Session7) { attendance.Session7 = true; return; }
             if (!attendance.Session8) { attendance.Session8 = true; return; }
             // All 8 sessions already marked — no-op
+        }
+
+        private async Task ScheduleClearAsync(string spreadsheetId, int maxRowToDelete)
+        {
+            try
+            {
+                await Task.Delay(ClearDelay);
+
+                // Resolve a fresh scope because DbContext is scoped and the original request is gone.
+                using var scope = _scopeFactory.CreateScope();
+                var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var sheets = scope.ServiceProvider.GetRequiredService<IGoogleSheetsService>();
+
+                await sheets.ClearProcessedRowsAsync(spreadsheetId, maxRowToDelete);
+
+                var meta = await ctx.SyncMetadata
+                    .FirstOrDefaultAsync(s => s.SpreadsheetId == spreadsheetId);
+                if (meta != null)
+                {
+                    // Shift LastProcessedRow back by the number of rows removed.
+                    // If new rows arrived during the delay, those are preserved.
+                    var rowsDeleted = maxRowToDelete - 1; // we keep header (row 1)
+                    meta.LastProcessedRow = Math.Max(1, meta.LastProcessedRow - rowsDeleted);
+                    meta.LastSyncDate = DateTime.UtcNow;
+                    await ctx.SaveChangesAsync();
+                }
+
+                _logger.LogInformation("Delayed sheet clear complete for rows 2..{Max}.", maxRowToDelete);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Delayed sheet clear failed for rows 2..{Max}.", maxRowToDelete);
+            }
         }
     }
 }

@@ -1,3 +1,4 @@
+using BLL.Helpers;
 using BLL.Service.Abstraction;
 using DAL;
 using DAL.Entities;
@@ -31,7 +32,7 @@ namespace BLL.Services
             {
                 CourseId = courseId,
                 SessionPIN = pin,
-                CreatedAt = DateTime.Now,
+                CreatedAt = EgyptTime.Now,
                 IsActive = true
             };
 

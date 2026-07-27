@@ -63,6 +63,15 @@
                 </li>
                 @if (User.IsInRole("Admin"))
                 {
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Expense" asp-action="Index">
+                            <i class="bi bi-cash-stack"></i>
+                            <span>المصروفات</span>
+                        </a>
+                    </li>
+                }
+                @if (User.IsInRole("Admin"))
+                {
                     <li class="nav-item mt-3">
                         <a class="nav-link" asp-controller="Account" asp-action="Users">
                             <i class="bi bi-shield-lock"></i>

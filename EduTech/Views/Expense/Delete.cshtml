@@ -1,0 +1,49 @@
+@model Expense
+@using DAL.Extensions
+
+@{
+    ViewData["Title"] = "حذف مصروف";
+}
+
+<div class="mb-4">
+    <h4 class="text-danger"><i class="bi bi-exclamation-triangle"></i> حذف مصروف</h4>
+</div>
+
+<div class="card border-danger">
+    <div class="card-header bg-danger text-white">
+        <i class="bi bi-exclamation-circle"></i> هل أنت متأكد من حذف هذا المصروف؟
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(m => m.Amount)</strong>
+                <p class="fs-6"><strong>@Model.Amount.ToString("N2") ج.م</strong></p>
+            </div>
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(m => m.Category)</strong>
+                <p class="fs-6">@Model.Category.GetDisplayName()</p>
+            </div>
+            <div class="col-md-6 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(m => m.Date)</strong>
+                <p class="fs-6">@Model.Date.ToString("yyyy-MM-dd")</p>
+            </div>
+            <div class="col-md-12 mb-3">
+                <strong class="text-muted">@Html.DisplayNameFor(m => m.Description)</strong>
+                <p class="fs-6">@(Model.Description ?? "—")</p>
+            </div>
+        </div>
+
+        <hr />
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="Id" />
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> تأكيد الحذف
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-right"></i> إلغاء
+                </a>
+            </div>
+        </form>
+    </div>
+</div>

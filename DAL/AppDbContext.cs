@@ -19,6 +19,7 @@ namespace DAL
         public DbSet<Attendance> Attendances { get; set; }
         public DbSet<AttendanceSession> AttendanceSessions { get; set; }
         public DbSet<SyncMetadata> SyncMetadata { get; set; }
+        public DbSet<Expense> Expenses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -37,6 +38,11 @@ namespace DAL
             // Precision for decimal Score
             modelBuilder.Entity<StudentExam>()
                 .Property(se => se.Score)
+                .HasPrecision(18, 2);
+
+            // Precision for decimal Amount
+            modelBuilder.Entity<Expense>()
+                .Property(e => e.Amount)
                 .HasPrecision(18, 2);
 
             // Unique: one attendance record per student per course per month/year

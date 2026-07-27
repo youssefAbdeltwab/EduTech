@@ -1,0 +1,144 @@
+@model IEnumerable<Expense>
+@using DAL.Entities
+@using DAL.Extensions
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "المصروفات";
+    int selectedMonth = (int)ViewBag.SelectedMonth;
+    int selectedYear = (int)ViewBag.SelectedYear;
+    ExpenseCategory? selectedCategory = ViewBag.SelectedCategory as ExpenseCategory?;
+    decimal total = (decimal)ViewBag.Total;
+
+    string[] monthNames = { "", "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
+                              "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر" };
+
+    int prevMonth = selectedMonth == 1 ? 12 : selectedMonth - 1;
+    int prevYear = selectedMonth == 1 ? selectedYear - 1 : selectedYear;
+    int nextMonth = selectedMonth == 12 ? 1 : selectedMonth + 1;
+    int nextYear = selectedMonth == 12 ? selectedYear + 1 : selectedYear;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-cash-stack"></i> المصروفات</h4>
+    <div class="d-flex gap-2">
+        <a asp-action="Dashboard" class="btn btn-outline-primary">
+            <i class="bi bi-bar-chart"></i> لوحة المصروفات
+        </a>
+        <a asp-action="Create" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> إضافة مصروف
+        </a>
+    </div>
+</div>
+
+<!-- Month/Category Filter -->
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form asp-action="Index" method="get" class="d-flex align-items-center gap-2 flex-wrap">
+            <a asp-action="Index" asp-route-month="@prevMonth" asp-route-year="@prevYear" asp-route-category="@selectedCategory" class="btn btn-sm btn-outline-secondary" title="الشهر السابق">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+
+            <label class="form-label mb-0 fw-bold">الشهر:</label>
+            <select name="month" class="form-select" style="max-width: 160px;">
+                @for (int m = 1; m <= 12; m++)
+                {
+                    <option value="@m" selected="@(m == selectedMonth)">@monthNames[m]</option>
+                }
+            </select>
+
+            <label class="form-label mb-0 fw-bold">السنة:</label>
+            <select name="year" class="form-select" style="max-width: 120px;">
+                @for (int y = DateTime.Now.Year - 2; y <= DateTime.Now.Year + 1; y++)
+                {
+                    <option value="@y" selected="@(y == selectedYear)">@y</option>
+                }
+            </select>
+
+            <a asp-action="Index" asp-route-month="@nextMonth" asp-route-year="@nextYear" asp-route-category="@selectedCategory" class="btn btn-sm btn-outline-secondary" title="الشهر التالي">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+
+            <label class="form-label mb-0 fw-bold">التصنيف:</label>
+            <select name="category" class="form-select" style="max-width: 200px;">
+                <option value="">الكل</option>
+                @foreach (var item in (SelectList)ViewBag.Categories)
+                {
+                    <option value="@item.Value" selected="@(selectedCategory.HasValue && item.Value == ((int)selectedCategory.Value).ToString())">@item.Text</option>
+                }
+            </select>
+
+            <button type="submit" class="btn btn-primary btn-sm">
+                <i class="bi bi-funnel"></i> عرض
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Summary -->
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card text-center border-primary">
+            <div class="card-body py-2">
+                <div class="text-muted small">إجمالي المصروفات (للفلتر الحالي)</div>
+                <div class="fs-4 fw-bold text-primary">@total.ToString("N2") ج.م</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="bi bi-calendar-month"></i>
+            مصروفات شهر @monthNames[selectedMonth] @selectedYear
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>التصنيف</th>
+                        <th>المبلغ</th>
+                        <th>التاريخ</th>
+                        <th>الوصف</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                                لا يوجد مصروفات حالياً
+                            </td>
+                        </tr>
+                    }
+                    @{ int counter = 0; }
+                    @foreach (var expense in Model)
+                    {
+                        counter++;
+                        <tr>
+                            <td>@counter</td>
+                            <td>@expense.Category.GetDisplayName()</td>
+                            <td>@expense.Amount.ToString("N2") ج.م</td>
+                            <td>@expense.Date.ToString("yyyy-MM-dd")</td>
+                            <td>@(expense.Description ?? "—")</td>
+                            <td>
+                                <a asp-action="Edit" asp-route-id="@expense.Id" class="btn btn-sm btn-outline-primary" title="تعديل">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@expense.Id" class="btn btn-sm btn-outline-danger" title="حذف">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

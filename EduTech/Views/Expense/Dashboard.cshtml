@@ -1,0 +1,152 @@
+@using DAL.Enums
+@using DAL.Extensions
+
+@{
+    ViewData["Title"] = "لوحة المصروفات";
+
+    int weekOffset = (int)ViewBag.WeekOffset;
+    int monthOffset = (int)ViewBag.MonthOffset;
+    int yearOffset = (int)ViewBag.YearOffset;
+
+    DateTime weekStart = (DateTime)ViewBag.WeekStart;
+    DateTime weekEnd = (DateTime)ViewBag.WeekEnd;
+    DateTime monthAnchor = (DateTime)ViewBag.MonthAnchor;
+    DateTime yearAnchor = (DateTime)ViewBag.YearAnchor;
+
+    decimal weekTotal = (decimal)ViewBag.WeekTotal;
+    decimal monthTotal = (decimal)ViewBag.MonthTotal;
+    decimal yearTotal = (decimal)ViewBag.YearTotal;
+
+    var weekBreakdown = (List<(ExpenseCategory Category, decimal Amount, double Percent)>)ViewBag.WeekBreakdown;
+    var monthBreakdown = (List<(ExpenseCategory Category, decimal Amount, double Percent)>)ViewBag.MonthBreakdown;
+    var yearBreakdown = (List<(ExpenseCategory Category, decimal Amount, double Percent)>)ViewBag.YearBreakdown;
+
+    string[] monthNames = { "", "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
+                              "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر" };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-bar-chart"></i> لوحة المصروفات</h4>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-list"></i> قائمة المصروفات
+    </a>
+</div>
+
+<div class="row">
+    <!-- Week -->
+    <div class="col-md-4 mb-3">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <a asp-action="Dashboard" asp-route-weekOffset="@(weekOffset - 1)" asp-route-monthOffset="@monthOffset" asp-route-yearOffset="@yearOffset" class="btn btn-sm btn-outline-secondary" title="الأسبوع السابق">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+                <h6 class="mb-0"><i class="bi bi-calendar-week"></i> هذا الأسبوع</h6>
+                <a asp-action="Dashboard" asp-route-weekOffset="@(weekOffset + 1)" asp-route-monthOffset="@monthOffset" asp-route-yearOffset="@yearOffset" class="btn btn-sm btn-outline-secondary" title="الأسبوع التالي">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="text-center text-muted small mb-2">من @weekStart.ToString("yyyy-MM-dd") إلى @weekEnd.ToString("yyyy-MM-dd")</div>
+                <div class="text-center fs-4 fw-bold text-primary mb-3">@weekTotal.ToString("N2") ج.م</div>
+                @if (!weekBreakdown.Any())
+                {
+                    <p class="text-center text-muted py-3"><i class="bi bi-inbox fs-3 d-block mb-2"></i>لا توجد مصروفات في هذه الفترة</p>
+                }
+                else
+                {
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>التصنيف</th><th>المبلغ</th><th>النسبة</th></tr></thead>
+                        <tbody>
+                            @foreach (var row in weekBreakdown)
+                            {
+                                <tr>
+                                    <td>@row.Category.GetDisplayName()</td>
+                                    <td>@row.Amount.ToString("N2")</td>
+                                    <td>@row.Percent.ToString("N1")%</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Month -->
+    <div class="col-md-4 mb-3">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <a asp-action="Dashboard" asp-route-weekOffset="@weekOffset" asp-route-monthOffset="@(monthOffset - 1)" asp-route-yearOffset="@yearOffset" class="btn btn-sm btn-outline-secondary" title="الشهر السابق">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+                <h6 class="mb-0"><i class="bi bi-calendar-month"></i> هذا الشهر</h6>
+                <a asp-action="Dashboard" asp-route-weekOffset="@weekOffset" asp-route-monthOffset="@(monthOffset + 1)" asp-route-yearOffset="@yearOffset" class="btn btn-sm btn-outline-secondary" title="الشهر التالي">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="text-center text-muted small mb-2">@monthNames[monthAnchor.Month] @monthAnchor.Year</div>
+                <div class="text-center fs-4 fw-bold text-primary mb-3">@monthTotal.ToString("N2") ج.م</div>
+                @if (!monthBreakdown.Any())
+                {
+                    <p class="text-center text-muted py-3"><i class="bi bi-inbox fs-3 d-block mb-2"></i>لا توجد مصروفات في هذه الفترة</p>
+                }
+                else
+                {
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>التصنيف</th><th>المبلغ</th><th>النسبة</th></tr></thead>
+                        <tbody>
+                            @foreach (var row in monthBreakdown)
+                            {
+                                <tr>
+                                    <td>@row.Category.GetDisplayName()</td>
+                                    <td>@row.Amount.ToString("N2")</td>
+                                    <td>@row.Percent.ToString("N1")%</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Year -->
+    <div class="col-md-4 mb-3">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <a asp-action="Dashboard" asp-route-weekOffset="@weekOffset" asp-route-monthOffset="@monthOffset" asp-route-yearOffset="@(yearOffset - 1)" class="btn btn-sm btn-outline-secondary" title="السنة السابقة">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+                <h6 class="mb-0"><i class="bi bi-calendar3"></i> هذه السنة</h6>
+                <a asp-action="Dashboard" asp-route-weekOffset="@weekOffset" asp-route-monthOffset="@monthOffset" asp-route-yearOffset="@(yearOffset + 1)" class="btn btn-sm btn-outline-secondary" title="السنة التالية">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="text-center text-muted small mb-2">@yearAnchor.Year</div>
+                <div class="text-center fs-4 fw-bold text-primary mb-3">@yearTotal.ToString("N2") ج.م</div>
+                @if (!yearBreakdown.Any())
+                {
+                    <p class="text-center text-muted py-3"><i class="bi bi-inbox fs-3 d-block mb-2"></i>لا توجد مصروفات في هذه الفترة</p>
+                }
+                else
+                {
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>التصنيف</th><th>المبلغ</th><th>النسبة</th></tr></thead>
+                        <tbody>
+                            @foreach (var row in yearBreakdown)
+                            {
+                                <tr>
+                                    <td>@row.Category.GetDisplayName()</td>
+                                    <td>@row.Amount.ToString("N2")</td>
+                                    <td>@row.Percent.ToString("N1")%</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+</div>

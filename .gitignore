@@ -13,7 +13,10 @@ google-services.json
 appsettings.json
 appsettings.Development.json
 
+
 ## SQLite
 *.db
 *.db-shm
 *.db-wal
+EduTech/appsettings.Development.json
+EduTech/appsettings.json
